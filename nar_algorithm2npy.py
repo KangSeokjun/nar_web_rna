@@ -199,7 +199,7 @@ def SPOT_fasta_make(seq_name, sequence, output_path):
     
 def exac_E2E(pickle_path, num_device=1, device_num = 0):
   # nc seed 2 epoch 20 s 4
-  model_path = '/media/ksj/nar_web_rna/E2Efold/model/e2efold_model_new.pt'
+  model_path = './E2Efold/model/e2efold_model_new.pt'
   d = 10
   BATCH_SIZE = 1
   pp_steps = 20
@@ -259,7 +259,7 @@ def exac_E2E(pickle_path, num_device=1, device_num = 0):
 
 def exac_RED(pickle_path, num_device=1,device_num = 0):
   # nc seed 2 epoch 124 s 0
-  model_path = '/media/ksj/nar_web_rna/REDfold/model/redfold_model_new.pt'
+  model_path = './REDfold/model/redfold_model_new.pt'
 
   # 나중에 바꾸기
   use_device_num = device_num
@@ -381,8 +381,8 @@ def exac_SPOT(fasta_path, device_num):
 
     print('\nPredicting for SPOT-RNA model '+str(MODEL))
     with tf.compat.v1.Session(config=config) as sess:
-        saver = tf.compat.v1.train.import_meta_graph(os.path.join('/media/ksj/nar_web_rna/SPOT_RNA/SPOT-RNA-models', 'model' + str(MODEL) + '.meta'))
-        saver.restore(sess,os.path.join('/media/ksj/nar_web_rna/SPOT_RNA/SPOT-RNA-models', 'model' + str(MODEL)))
+        saver = tf.compat.v1.train.import_meta_graph(os.path.join('./SPOT_RNA/SPOT-RNA-models', 'model' + str(MODEL) + '.meta'))
+        saver.restore(sess,os.path.join('./SPOT_RNA/SPOT-RNA-models', 'model' + str(MODEL)))
         graph = tf.compat.v1.get_default_graph()
         init_test =  graph.get_operation_by_name('make_initializer_2')
         tmp_out = graph.get_tensor_by_name('output_FC/fully_connected/BiasAdd:0')
@@ -508,16 +508,19 @@ def al2npy(algorithm:str, uuid:str, seq_name:str, sequence:str, base_path:str = 
     SPOT_fasta_make(seq_name,sequence,tmp_path)
     spot_npy = exac_SPOT(os.path.join( tmp_path, seq_name+'.fasta'),gpu_num)
     np.save(os.path.join( tmp_path, seq_name+'.npy'), spot_npy)
+    write_ct_file(seq_name, sequence, spot_npy, os.path.join( tmp_path, seq_name+'.ct'))
     return spot_npy
   elif algorithm == 'e2efold':
     E2E_pickle_make(seq_name,sequence,tmp_path)
     e2e_npy = exac_E2E(os.path.join( tmp_path, seq_name+'.pickle'))
     np.save(os.path.join( tmp_path, seq_name+'.npy'), e2e_npy)
+    write_ct_file(seq_name, sequence, e2e_npy, os.path.join( tmp_path, seq_name+'.ct'))
     return e2e_npy
   elif algorithm == 'redfold':
     RED_pickle_make(seq_name,sequence,tmp_path)
     red_npy = exac_RED(os.path.join( tmp_path, seq_name+'.pickle'))
     np.save(os.path.join( tmp_path, seq_name+'.npy'), red_npy)
+    write_ct_file(seq_name, sequence, red_npy, os.path.join( tmp_path, seq_name+'.ct'))
     return red_npy
   else:
     raise ValueError(
