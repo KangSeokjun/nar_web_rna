@@ -9,7 +9,7 @@ TOPIC = 'queuedevel'  # 수신할 토픽
 # KafkaConsumer 설정
 consumer = Consumer({
     'bootstrap.servers': KAFKA_SERVER,
-    'group.id': 'test-group',
+    'group.id': 'prediction',
     'auto.offset.reset': 'earliest'  # 가장 첫 번째 메시지부터 읽기
 })
 
@@ -39,13 +39,13 @@ def main():
                 data = json.loads(msg.value().decode('utf-8')) 
                 
                 uuid = data['uuid']
-                seq_name = data['seqName']
+                seq_name = data['seq_name']
                 sequence = data['sequence']
                 algorithm = data['algorithm']
                 
                 # print(uuid, seq_name, sequence, algorithm)
                 
-                al2npy(algorithm=algorithm, uuid=uuid, seq_name=seq_name, sequence=sequence, base_path='./datas')
+                al2npy(algorithm=algorithm, uuid=uuid, seq_name=seq_name, sequence=sequence, base_path='/data')
     except KeyboardInterrupt:
         print("\nExiting...")
     finally:
