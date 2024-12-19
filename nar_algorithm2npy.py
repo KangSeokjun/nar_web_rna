@@ -2,6 +2,7 @@ import numpy as np
 import os
 from tqdm import tqdm
 import argparse
+import subprocess
 
 # for SPOT-RNA
 from SPOT_RNA.utils.utils import create_tfr_files
@@ -508,21 +509,33 @@ def al2npy(algorithm:str, uuid:str, seq_name:str, sequence:str, base_path:str = 
     SPOT_fasta_make(seq_name,sequence,tmp_path)
     spot_npy = exac_SPOT(os.path.join( tmp_path, seq_name+'.fasta'),gpu_num)
     np.save(os.path.join( tmp_path, seq_name+'.npy'), spot_npy)
-    write_ct_file(seq_name, sequence, spot_npy, os.path.join( tmp_path, seq_name+'.ct'))
+    write_ct_file(seq_name, sequence, spot_npy, os.path.join( tmp_path, 'rna.ct'))
+    subprocess.run(args=['java', '-cp', 'VARNAv3-93.jar', 'fr.orsay.lri.varna.applications.VARNAcmd', 
+                         '-i', os.path.join( tmp_path, 'rna.ct'), '-o', 
+                         os.path.join( tmp_path, 'image.png'), '-resolution', '10.0'], 
+                   cwd="/workspace/nar_web_rna/varna/")
     os.remove(os.path.join( tmp_path, '.notdone'))
     return spot_npy
   elif algorithm == 'e2efold':
     E2E_pickle_make(seq_name,sequence,tmp_path)
     e2e_npy = exac_E2E(os.path.join( tmp_path, seq_name+'.pickle'))
     np.save(os.path.join( tmp_path, seq_name+'.npy'), e2e_npy)
-    write_ct_file(seq_name, sequence, e2e_npy, os.path.join( tmp_path, seq_name+'.ct'))
+    write_ct_file(seq_name, sequence, e2e_npy, os.path.join( tmp_path, 'rna.ct'))
+    subprocess.run(args=['java', '-cp', 'VARNAv3-93.jar', 'fr.orsay.lri.varna.applications.VARNAcmd', 
+                         '-i', os.path.join( tmp_path, 'rna.ct'), '-o', 
+                         os.path.join( tmp_path, 'image.png'), '-resolution', '10.0'], 
+                   cwd="/workspace/nar_web_rna/varna/")
     os.remove(os.path.join( tmp_path, '.notdone'))
     return e2e_npy
   elif algorithm == 'redfold':
     RED_pickle_make(seq_name,sequence,tmp_path)
     red_npy = exac_RED(os.path.join( tmp_path, seq_name+'.pickle'))
     np.save(os.path.join( tmp_path, seq_name+'.npy'), red_npy)
-    write_ct_file(seq_name, sequence, red_npy, os.path.join( tmp_path, seq_name+'.ct'))
+    write_ct_file(seq_name, sequence, red_npy, os.path.join( tmp_path, 'rna.ct'))
+    subprocess.run(args=['java', '-cp', 'VARNAv3-93.jar', 'fr.orsay.lri.varna.applications.VARNAcmd', 
+                         '-i', os.path.join( tmp_path, 'rna.ct'), '-o', 
+                         os.path.join( tmp_path, 'image.png'), '-resolution', '10.0'], 
+                   cwd="/workspace/nar_web_rna/varna/")
     os.remove(os.path.join( tmp_path, '.notdone'))
     return red_npy
   else:

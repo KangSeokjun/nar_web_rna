@@ -21,7 +21,6 @@ def main():
 
     try:
         while True:
-            print("\nWaiting for next Message")
             # 메시지 수신
             msg = consumer.poll(timeout=1.0)  # 1초 동안 대기
             
@@ -37,7 +36,8 @@ def main():
             else:
                 # 정상적인 메시지가 수신되면 출력
                 data = json.loads(msg.value().decode('utf-8')) 
-                
+                print(data)
+
                 uuid = data['uuid']
                 seq_name = data['seq_name']
                 sequence = data['sequence']
