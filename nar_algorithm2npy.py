@@ -487,6 +487,54 @@ def write_ct_file(rna_name, sequence, adjacency_matrix, output_file):
             ))
     
     print(f".ct file written to {output_file}")
+    
+# dot_bracker functions
+def listtuple_to_string(list, L):
+    strlist = ["."] * L
+    for (i,j) in list:
+        strlist[i] = "("
+        strlist[j] = ")"
+
+    return "".join(strlist)  
+
+def print_pkfreeline(entry, L):
+
+    num_entry = entry.shape[0]
+
+    i_prev,j_prev = 0,num_entry
+    list_pkfree = []
+    list_remaining = []
+    list_check = []
+    i_prev,j_prev = 0,0
+
+    for k in range(num_entry):
+        i,j = entry[k]
+
+        if(k==0):
+            list_pkfree.append((i,j))
+            list_check.append((i,j))
+        
+        else:
+            if any((i<j_check and j_check<j) for (i_check,j_check) in list_check):
+                list_remaining.append((i,j))
+            else:
+                list_pkfree.append((i,j))
+                if j_prev < j:
+                    list_check.append((i,j))
+                    if i_prev + 1 < j_prev:
+                        list_check.append((i_prev,j_prev))
+
+                if j_prev > j+1:
+                    list_check.append((i_prev,j_prev))
+        
+
+        i_prev, j_prev = i, j
+
+
+    rnastr =  listtuple_to_string(list_pkfree, L)
+
+    return rnastr,np.array(list_remaining)
+
 
 def al2npy(algorithm:str, uuid:str, seq_name:str, sequence:str, base_path:str = './', num_of_gpus:int = 1, gpu_num:int = 0):
   valid_algorithms = ['e2efold', 'redfold', 'spot-rna']
@@ -514,8 +562,17 @@ def al2npy(algorithm:str, uuid:str, seq_name:str, sequence:str, base_path:str = 
                          '-i', os.path.join( tmp_path, 'rna.ct'), '-o', 
                          os.path.join( tmp_path, 'image.png'), '-resolution', '10.0'], 
                    cwd="/workspace/nar_web_rna/varna/")
-    os.remove(os.path.join( tmp_path, '.notdone'))
-    return spot_npy
+    # dot bracket
+    entry = np.transpose(np.nonzero(np.triu(spot_npy)))
+    L = spot_npy.shape[0]
+    list_remaining = entry
+    list_str = []
+    while True:
+      rnastr,list_remaining = print_pkfreeline(list_remaining, L)
+      list_str.append(rnastr)
+      if not list_remaining.size==0: continue
+      break
+    return list_str
   elif algorithm == 'e2efold':
     E2E_pickle_make(seq_name,sequence,tmp_path)
     e2e_npy = exac_E2E(os.path.join( tmp_path, seq_name+'.pickle'))
@@ -525,8 +582,17 @@ def al2npy(algorithm:str, uuid:str, seq_name:str, sequence:str, base_path:str = 
                          '-i', os.path.join( tmp_path, 'rna.ct'), '-o', 
                          os.path.join( tmp_path, 'image.png'), '-resolution', '10.0'], 
                    cwd="/workspace/nar_web_rna/varna/")
-    os.remove(os.path.join( tmp_path, '.notdone'))
-    return e2e_npy
+    # dot bracket
+    entry = np.transpose(np.nonzero(np.triu(e2e_npy)))
+    L = e2e_npy.shape[0]
+    list_remaining = entry
+    list_str = []
+    while True:
+      rnastr,list_remaining = print_pkfreeline(list_remaining, L)
+      list_str.append(rnastr)
+      if not list_remaining.size==0: continue
+      break
+    return list_str
   elif algorithm == 'redfold':
     RED_pickle_make(seq_name,sequence,tmp_path)
     red_npy = exac_RED(os.path.join( tmp_path, seq_name+'.pickle'))
@@ -536,8 +602,17 @@ def al2npy(algorithm:str, uuid:str, seq_name:str, sequence:str, base_path:str = 
                          '-i', os.path.join( tmp_path, 'rna.ct'), '-o', 
                          os.path.join( tmp_path, 'image.png'), '-resolution', '10.0'], 
                    cwd="/workspace/nar_web_rna/varna/")
-    os.remove(os.path.join( tmp_path, '.notdone'))
-    return red_npy
+    # dot bracket
+    entry = np.transpose(np.nonzero(np.triu(red_npy)))
+    L = red_npy.shape[0]
+    list_remaining = entry
+    list_str = []
+    while True:
+      rnastr,list_remaining = print_pkfreeline(list_remaining, L)
+      list_str.append(rnastr)
+      if not list_remaining.size==0: continue
+      break
+    return list_str
   else:
     raise ValueError(
        f"Invalid algorithm '{algorithm}'. "

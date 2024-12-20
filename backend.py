@@ -1,6 +1,7 @@
 from confluent_kafka import Consumer, KafkaException, KafkaError
 import json
 from nar_algorithm2npy import al2npy
+import os
 
 # Kafka 서버 주소와 토픽 설정
 KAFKA_SERVER = 'nar.kafka:9093'  # Kafka 서버 주소
@@ -45,7 +46,17 @@ def main():
                 
                 # print(uuid, seq_name, sequence, algorithm)
                 
-                al2npy(algorithm=algorithm, uuid=uuid, seq_name=seq_name, sequence=sequence, base_path='/data')
+                dbn = al2npy(algorithm=algorithm, uuid=uuid, seq_name=seq_name, sequence=sequence, base_path='/data')
+                output_meta = os.path.join('/data', uuid, 'meta.json')
+                
+                with open(output_meta, 'r') as json_file:
+                  json_dic = json.load(json_file)
+                  
+                with open(output_meta, 'w') as json_file:
+                  json_dic['dot_bracket'] = dbn
+                  json.dump(json_dic, json_file)
+
+                os.remove(os.path.join( os.path.join('/data',uuid), '.notdone'))
     except KeyboardInterrupt:
         print("\nExiting...")
     finally:
