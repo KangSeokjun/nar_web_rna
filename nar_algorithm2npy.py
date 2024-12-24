@@ -443,7 +443,31 @@ def exac_SPOT(fasta_path, device_num):
         y_pred[inds[0][i], inds[1][i]] = test_output[i]
     y_pred = np.multiply(y_pred, mask_post)
     
-    return(y_pred)
+    def one_hot(seq1):
+      BASE1 = 'AUCG'
+    
+      npBASE1= np.array([b1 for b1 in BASE1])
+      RNA_seq= seq1
+
+      feat= np.concatenate([[(npBASE1 == base.upper()).astype(int)] 
+            if str(base).upper() in BASE1 else np.array([[0] * len(BASE1)]) for base in RNA_seq])
+
+      return feat
+
+    with open(fasta_path, 'r') as file:
+        lines = file.readlines()
+    
+    one_hot_matrix= one_hot(lines[1].replace("\n", ""))
+    
+    device = torch.device('cuda:{}'.format(device_num))
+    
+    result = postprocess_proposed_red(torch.tensor([y_pred], dtype=torch.float32).to(device),
+                                  torch.tensor([one_hot_matrix], dtype=torch.float32).to(device),
+                                  0,
+                                  0)
+    
+    # print(result)
+    return(result.cpu().numpy()[0])
 
 # matrix를 ct 파일로 바꿔주는 함수
 def write_ct_file(rna_name, sequence, adjacency_matrix, output_file):
@@ -556,6 +580,7 @@ def al2npy(algorithm:str, uuid:str, seq_name:str, sequence:str, base_path:str = 
   if algorithm == 'spot-rna':
     SPOT_fasta_make(seq_name,sequence,tmp_path)
     spot_npy = exac_SPOT(os.path.join( tmp_path, seq_name+'.fasta'),gpu_num)
+    print(spot_npy.shape)
     np.save(os.path.join( tmp_path, seq_name+'.npy'), spot_npy)
     write_ct_file(seq_name, sequence, spot_npy, os.path.join( tmp_path, 'rna.ct'))
     subprocess.run(args=['java', '-cp', 'VARNAv3-93.jar', 'fr.orsay.lri.varna.applications.VARNAcmd', 
